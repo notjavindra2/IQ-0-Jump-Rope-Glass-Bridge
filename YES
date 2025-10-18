@@ -1,58 +1,98 @@
 -- IQ 0 Jump Rope Glass Bridge
--- Load Kavo UI Library
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
-local Window = Library.CreateLib("IQ 0 Jump Rope Glass Bridge", "DarkTheme")
+local Version = "1.6.31"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
 
--- Create only Main and MISC tabs
-local MainTab = Window:NewTab("Main")
-local MiscTab = Window:NewTab("MISC")
+local Window = WindUI:CreateWindow({
+    Title = "IQ 0 Jump Rope Glass Bridge",
+    Size = UDim2.new(0, 500, 0, 400),
+    Theme = "Dark"
+})
 
--- Main Tab Content
-local MainSection = MainTab:NewSection("Main Features")
+local MainTab = Window:Tab({
+    Title = "Main",
+    Icon = "home"
+})
+
+local MiscTab = Window:Tab({
+    Title = "MISC",
+    Icon = "cog"
+})
+
+local MainSection = MainTab:Section({
+    Title = "Main Features"
+})
 
 -- Toggle for looping Win remote fire
 local winLoopEnabled = false
-local winLoopConnection
-MainTab:NewToggle("Auto Win Loop", "Toggles firing the Win remote in a loop", function(state)
-    winLoopEnabled = state
-    if state then
-        spawn(function()
-            while winLoopEnabled do
-                local Events_upvr = game:GetService("ReplicatedStorage").Events
-                if Events_upvr:FindFirstChild("Win") then
-                    Events_upvr.Win:FireServer()
+MainSection:Toggle({
+    Title = "Auto Win Loop",
+    Description = "Toggles firing the Win remote in a loop",
+    Default = false,
+    Callback = function(state)
+        winLoopEnabled = state
+        if state then
+            spawn(function()
+                while winLoopEnabled do
+                    local Events_upvr = game:GetService("ReplicatedStorage").Events
+                    if Events_upvr:FindFirstChild("Win") then
+                        Events_upvr.Win:FireServer()
+                    end
+                    wait(0.1) -- Adjust delay as needed to avoid spam
                 end
-                wait(0.1) -- Adjust delay as needed to avoid spam
-            end
-        end)
-    else
-        winLoopEnabled = false
+            end)
+        end
     end
-end)
+})
 
 -- Button to teleport to specific position
-MainTab:NewButton("Teleport to Position (-11.131, 23.994, 423.444)", "Teleports your character to the specified location", function()
-    local player = game.Players.LocalPlayer
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(-11.131, 23.994, 423.444)
+MainSection:Button({
+    Title = "Teleport to Position (-11.131, 23.994, 423.444)",
+    Description = "Teleports your character to the specified location",
+    Icon = "location-arrow",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(-11.131, 23.994, 423.444)
+        end
     end
-end)
+})
 
 -- Dynamic Player Dropdown for Teleport
-local selectedPlayer = nil
-local playerDropdown = MainTab:NewDropdown("Select Player", "Choose a player to teleport to", {"None"}, function(currentOption)
-    selectedPlayer = currentOption
-end)
+local selectedPlayer = "None"
+local playerValues = {"None"}
+for _, plr in pairs(game.Players:GetPlayers()) do
+    if plr ~= game.Players.LocalPlayer then
+        table.insert(playerValues, plr.Name)
+    end
+end
+
+local playerDropdown = MainSection:Dropdown({
+    Title = "Select Player",
+    Description = "Choose a player to teleport to",
+    Values = playerValues,
+    Value = "None",
+    SearchBarEnabled = true,
+    Callback = function(option)
+        selectedPlayer = option
+    end
+})
 
 -- Function to update player list
 local function updatePlayerList()
-    local playerList = {"None"}
+    playerValues = {"None"}
     for _, plr in pairs(game.Players:GetPlayers()) do
         if plr ~= game.Players.LocalPlayer then
-            table.insert(playerList, plr.Name)
+            table.insert(playerValues, plr.Name)
         end
     end
-    playerDropdown:Refresh(playerList, selectedPlayer or "None")
+    playerDropdown:Refresh(playerValues)
+    if selectedPlayer ~= "None" and not table.find(playerValues, selectedPlayer) then
+        selectedPlayer = "None"
+        -- Assuming :Set method exists; if not, the dropdown may handle it
+        if playerDropdown.Set then
+            playerDropdown:Set("None")
+        end
+    end
 end
 
 -- Initial update
@@ -63,18 +103,25 @@ game.Players.PlayerAdded:Connect(updatePlayerList)
 game.Players.PlayerRemoving:Connect(updatePlayerList)
 
 -- Button to teleport to selected player
-MainTab:NewButton("Teleport to Selected Player", "Teleports to the chosen player", function()
-    if selectedPlayer and selectedPlayer ~= "None" then
-        local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local player = game.Players.LocalPlayer
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+MainSection:Button({
+    Title = "Teleport to Selected Player",
+    Description = "Teleports to the chosen player",
+    Icon = "user",
+    Callback = function()
+        if selectedPlayer and selectedPlayer ~= "None" then
+            local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local player = game.Players.LocalPlayer
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+                end
             end
         end
     end
-end)
+})
 
 -- MISC Tab (empty for now, add if needed)
-local MiscSection = MiscTab:NewSection("Misc Features")
+local MiscSection = MiscTab:Section({
+    Title = "Misc Features"
+})
 -- Add misc features here if desired
