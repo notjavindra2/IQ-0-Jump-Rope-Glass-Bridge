@@ -1,127 +1,199 @@
--- IQ 0 Jump Rope Glass Bridge
 local Version = "1.6.31"
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
+local Window = WindUI:CreateWindow({Title="IQ 0 Jump Rope Glass Bridge",Size=UDim2.new(0,500,0,400),Theme="Dark"})
 
-local Window = WindUI:CreateWindow({
-    Title = "IQ 0 Jump Rope Glass Bridge",
-    Size = UDim2.new(0, 500, 0, 400),
-    Theme = "Dark"
-})
+local MainTab = Window:Tab({Title="Main",Icon="home"})
+local MiscTab = Window:Tab({Title="Misc",Icon="rbxassetid://4483345998"})
+local ESPTab = Window:Tab({Title="ESP",Icon="eye"})
 
-local MainTab = Window:Tab({
-    Title = "Main",
-    Icon = "home"
-})
+local winLoop = false
+local selectedPlayer = "None"
+local dropdownRef
+local WalkSpeedValue = 16
+local JumpPowerValue = 50
+local SpeedEnabled = false
+local LocalPlayer = game.Players.LocalPlayer
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 
-local MiscTab = Window:Tab({
-    Title = "MISC",
-    Icon = "cog"
-})
-
-local MainSection = MainTab:Section({
-    Title = "Main Features"
-})
-
--- Toggle for looping Win remote fire
-local winLoopEnabled = false
-MainSection:Toggle({
-    Title = "Auto Win Loop",
-    Description = "Toggles firing the Win remote in a loop",
-    Default = false,
-    Callback = function(state)
-        winLoopEnabled = state
+MainTab:Toggle({
+    Title="Auto Win Loop",
+    Desc="Continuously fire Win remote",
+    Icon="check",
+    Type="Checkbox",
+    Default=false,
+    Callback=function(state)
+        winLoop=state
         if state then
-            spawn(function()
-                while winLoopEnabled do
-                    local Events_upvr = game:GetService("ReplicatedStorage").Events
-                    if Events_upvr:FindFirstChild("Win") then
-                        Events_upvr.Win:FireServer()
+            task.spawn(function()
+                while winLoop do
+                    local events=game:GetService("ReplicatedStorage").Events
+                    if events and events:FindFirstChild("Win") then
+                        events.Win:FireServer()
                     end
-                    wait(0.1) -- Adjust delay as needed to avoid spam
+                    task.wait(0.1)
                 end
             end)
         end
     end
 })
 
--- Button to teleport to specific position
-MainSection:Button({
-    Title = "Teleport to Position (-11.131, 23.994, 423.444)",
-    Description = "Teleports your character to the specified location",
-    Icon = "location-arrow",
-    Callback = function()
-        local player = game.Players.LocalPlayer
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(-11.131, 23.994, 423.444)
+MainTab:Button({
+    Title="Teleport to Position",
+    Icon="location-arrow",
+    Callback=function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame=CFrame.new(-11.131,23.994,423.444)
         end
     end
 })
 
--- Dynamic Player Dropdown for Teleport
-local selectedPlayer = "None"
-local playerValues = {"None"}
-for _, plr in pairs(game.Players:GetPlayers()) do
-    if plr ~= game.Players.LocalPlayer then
-        table.insert(playerValues, plr.Name)
+local function getPlayerList()
+    local list={"None"}
+    for _,plr in ipairs(game.Players:GetPlayers()) do
+        if plr~=LocalPlayer then
+            table.insert(list,plr.Name)
+        end
     end
+    return list
 end
 
-local playerDropdown = MainSection:Dropdown({
-    Title = "Select Player",
-    Description = "Choose a player to teleport to",
-    Values = playerValues,
-    Value = "None",
-    SearchBarEnabled = true,
-    Callback = function(option)
-        selectedPlayer = option
-    end
+dropdownRef=MainTab:Dropdown({
+    Title="Select Player",
+    Values=getPlayerList(),
+    Value="None",
+    SearchBarEnabled=true,
+    Callback=function(opt) selectedPlayer=opt end
 })
 
--- Function to update player list
-local function updatePlayerList()
-    playerValues = {"None"}
-    for _, plr in pairs(game.Players:GetPlayers()) do
-        if plr ~= game.Players.LocalPlayer then
-            table.insert(playerValues, plr.Name)
-        end
-    end
-    playerDropdown:Refresh(playerValues)
-    if selectedPlayer ~= "None" and not table.find(playerValues, selectedPlayer) then
-        selectedPlayer = "None"
-        -- Assuming :Set method exists; if not, the dropdown may handle it
-        if playerDropdown.Set then
-            playerDropdown:Set("None")
-        end
+local function refreshDropdown()
+    local newList=getPlayerList()
+    dropdownRef:Refresh(newList)
+    if selectedPlayer~="None" and not table.find(newList,selectedPlayer) then
+        selectedPlayer="None"
+        if dropdownRef.Set then dropdownRef:Set("None") end
     end
 end
 
--- Initial update
-updatePlayerList()
+game.Players.PlayerAdded:Connect(refreshDropdown)
+game.Players.PlayerRemoving:Connect(refreshDropdown)
 
--- Listen for player added/removed to update dropdown
-game.Players.PlayerAdded:Connect(updatePlayerList)
-game.Players.PlayerRemoving:Connect(updatePlayerList)
-
--- Button to teleport to selected player
-MainSection:Button({
-    Title = "Teleport to Selected Player",
-    Description = "Teleports to the chosen player",
-    Icon = "user",
-    Callback = function()
-        if selectedPlayer and selectedPlayer ~= "None" then
-            local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
-            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                local player = game.Players.LocalPlayer
-                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                    player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+MainTab:Button({
+    Title="Teleport to Selected Player",
+    Icon="user",
+    Callback=function()
+        if selectedPlayer~="None" then
+            local target=game.Players:FindFirstChild(selectedPlayer)
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame=target.Character.HumanoidRootPart.CFrame
                 end
             end
         end
     end
 })
 
--- MISC Tab (empty for now, add if needed)
-local MiscSection = MiscTab:Section({
-    Title = "Misc Features"
+MiscTab:Slider({
+    Title="WalkSpeed",
+    Default=16,Min=16,Max=200,
+    Callback=function(v) WalkSpeedValue=v; SpeedEnabled=true end
 })
--- Add misc features here if desired
+
+MiscTab:Slider({
+    Title="JumpPower",
+    Default=50,Min=50,Max=200,
+    Callback=function(v) JumpPowerValue=v; SpeedEnabled=true end
+})
+
+MiscTab:Button({
+    Title="Rejoin",
+    Callback=function() TeleportService:TeleportToPlaceInstance(game.PlaceId,game.JobId,LocalPlayer) end
+})
+
+MiscTab:Button({
+    Title="Server Hop",
+    Callback=function()
+        local servers={}
+        local suc,res=pcall(function()
+            return game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+        end)
+        if suc then
+            local data=HttpService:JSONDecode(res)
+            for _,srv in pairs(data.data) do
+                if srv.playing<srv.maxPlayers and srv.id~=game.JobId then
+                    table.insert(servers,srv.id)
+                end
+            end
+            if #servers>0 then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId,servers[math.random(#servers)],LocalPlayer)
+            end
+        end
+    end
+})
+
+MiscTab:Button({
+    Title="Copy Discord",
+    Callback=function() setclipboard("https://discord.gg/merquryhub") end
+})
+
+local ESPPlayers={}
+local ESPColor=Color3.fromRGB(0,0,255)
+
+for _,plr in ipairs(game.Players:GetPlayers()) do
+    if plr~=LocalPlayer then
+        ESPPlayers[plr.Name]=false
+        ESPTab:Toggle({
+            Title=plr.Name.." ESP",
+            Desc="Toggle ESP for "..plr.Name,
+            Icon="eye",
+            Type="Checkbox",
+            Default=false,
+            Callback=function(state) ESPPlayers[plr.Name]=state end
+        })
+    end
+end
+
+local ColorPicker=ESPTab:Colorpicker({
+    Title="ESP Color",
+    Default=ESPColor,
+    Callback=function(c) ESPColor=c end
+})
+
+game.Players.PlayerAdded:Connect(function(plr)
+    if plr~=LocalPlayer then
+        ESPPlayers[plr.Name]=false
+        ESPTab:Toggle({
+            Title=plr.Name.." ESP",
+            Desc="Toggle ESP for "..plr.Name,
+            Icon="eye",
+            Type="Checkbox",
+            Default=false,
+            Callback=function(state) ESPPlayers[plr.Name]=state end
+        })
+    end
+end)
+
+game:GetService("RunService").RenderStepped:Connect(function()
+    for plr,state in pairs(ESPPlayers) do
+        local target=game.Players:FindFirstChild(plr)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            if state then
+                if not target.Character:FindFirstChild("ESPBox") then
+                    local box=Instance.new("BoxHandleAdornment")
+                    box.Name="ESPBox"
+                    box.Adornee=target.Character:FindFirstChild("HumanoidRootPart")
+                    box.Size=Vector3.new(2,5,1)
+                    box.Color=ESPColor
+                    box.AlwaysOnTop=true
+                    box.Parent=target.Character
+                else
+                    target.Character.ESPBox.Color=ESPColor
+                end
+            else
+                if target.Character:FindFirstChild("ESPBox") then
+                    target.Character.ESPBox:Destroy()
+                end
+            end
+        end
+    end
+end)
