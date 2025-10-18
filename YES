@@ -1,0 +1,80 @@
+-- IQ 0 Jump Rope Glass Bridge
+-- Load Kavo UI Library
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("IQ 0 Jump Rope Glass Bridge", "DarkTheme")
+
+-- Create only Main and MISC tabs
+local MainTab = Window:NewTab("Main")
+local MiscTab = Window:NewTab("MISC")
+
+-- Main Tab Content
+local MainSection = MainTab:NewSection("Main Features")
+
+-- Toggle for looping Win remote fire
+local winLoopEnabled = false
+local winLoopConnection
+MainTab:NewToggle("Auto Win Loop", "Toggles firing the Win remote in a loop", function(state)
+    winLoopEnabled = state
+    if state then
+        spawn(function()
+            while winLoopEnabled do
+                local Events_upvr = game:GetService("ReplicatedStorage").Events
+                if Events_upvr:FindFirstChild("Win") then
+                    Events_upvr.Win:FireServer()
+                end
+                wait(0.1) -- Adjust delay as needed to avoid spam
+            end
+        end)
+    else
+        winLoopEnabled = false
+    end
+end)
+
+-- Button to teleport to specific position
+MainTab:NewButton("Teleport to Position (-11.131, 23.994, 423.444)", "Teleports your character to the specified location", function()
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(-11.131, 23.994, 423.444)
+    end
+end)
+
+-- Dynamic Player Dropdown for Teleport
+local selectedPlayer = nil
+local playerDropdown = MainTab:NewDropdown("Select Player", "Choose a player to teleport to", {"None"}, function(currentOption)
+    selectedPlayer = currentOption
+end)
+
+-- Function to update player list
+local function updatePlayerList()
+    local playerList = {"None"}
+    for _, plr in pairs(game.Players:GetPlayers()) do
+        if plr ~= game.Players.LocalPlayer then
+            table.insert(playerList, plr.Name)
+        end
+    end
+    playerDropdown:Refresh(playerList, selectedPlayer or "None")
+end
+
+-- Initial update
+updatePlayerList()
+
+-- Listen for player added/removed to update dropdown
+game.Players.PlayerAdded:Connect(updatePlayerList)
+game.Players.PlayerRemoving:Connect(updatePlayerList)
+
+-- Button to teleport to selected player
+MainTab:NewButton("Teleport to Selected Player", "Teleports to the chosen player", function()
+    if selectedPlayer and selectedPlayer ~= "None" then
+        local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local player = game.Players.LocalPlayer
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+            end
+        end
+    end
+end)
+
+-- MISC Tab (empty for now, add if needed)
+local MiscSection = MiscTab:NewSection("Misc Features")
+-- Add misc features here if desired
