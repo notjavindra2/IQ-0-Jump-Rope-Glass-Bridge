@@ -1,20 +1,24 @@
 local Version = "1.6.31"
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
-local Window = WindUI:CreateWindow({Title="IQ 0 Jump Rope Glass Bridge",Size=UDim2.new(0,500,0,400),Theme="Dark"})
+local Window = WindUI:CreateWindow({Title="IQ 0 Jump Rope Glass Bridge", Size=UDim2.new(0,500,0,400), Theme="Dark"})
 
-local MainTab = Window:Tab({Title="Main",Icon="home"})
-local MiscTab = Window:Tab({Title="Misc",Icon="rbxassetid://4483345998"})
-local ESPTab = Window:Tab({Title="ESP",Icon="eye"})
+local MainTab = Window:Tab({Title="Main", Icon="home"})
+local MiscTab = Window:Tab({Title="Misc", Icon="rbxassetid://4483345998"})
+local ESPTab = Window:Tab({Title="ESP", Icon="eye"})
 
-local winLoop = false
-local selectedPlayer = "None"
-local dropdownRef
-local WalkSpeedValue, JumpPowerValue = 17, 50
-local SpeedEnabled = false
+local RunService = game:GetService("RunService")
 local LocalPlayer = game.Players.LocalPlayer
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 
+-- Variables
+local winLoop = false
+local selectedPlayer = "None"
+local dropdownRef
+local WalkSpeedValue, JumpPowerValue = 17, 50
+local SpeedEnabled = true
+
+-- Main Tab
 MainTab:Toggle({
     Title="Auto Win Loop",
     Desc="Continuously fire Win remote",
@@ -26,7 +30,7 @@ MainTab:Toggle({
         if state then
             task.spawn(function()
                 while winLoop do
-                    local events=game:GetService("ReplicatedStorage").Events
+                    local events=game:GetService("ReplicatedStorage"):FindFirstChild("Events")
                     if events and events:FindFirstChild("Win") then
                         events.Win:FireServer()
                     end
@@ -42,7 +46,7 @@ MainTab:Button({
     Icon="location-arrow",
     Callback=function()
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            LocalPlayer.Character.HumanoidRootPart.CFrame=CFrame.new(-11.131,23.994,423.444)
+            LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-11.131,23.994,423.444)
         end
     end
 })
@@ -51,13 +55,13 @@ local function getPlayerList()
     local list={"None"}
     for _,plr in ipairs(game.Players:GetPlayers()) do
         if plr~=LocalPlayer then
-            table.insert(list,plr.Name)
+            table.insert(list, plr.Name)
         end
     end
     return list
 end
 
-dropdownRef=MainTab:Dropdown({
+dropdownRef = MainTab:Dropdown({
     Title="Select Player",
     Values=getPlayerList(),
     Value="None",
@@ -66,9 +70,9 @@ dropdownRef=MainTab:Dropdown({
 })
 
 local function refreshDropdown()
-    local newList=getPlayerList()
+    local newList = getPlayerList()
     dropdownRef:Refresh(newList)
-    if selectedPlayer~="None" and not table.find(newList,selectedPlayer) then
+    if selectedPlayer~="None" and not table.find(newList, selectedPlayer) then
         selectedPlayer="None"
         if dropdownRef.Set then dropdownRef:Set("None") end
     end
@@ -82,43 +86,50 @@ MainTab:Button({
     Icon="user",
     Callback=function()
         if selectedPlayer~="None" then
-            local target=game.Players:FindFirstChild(selectedPlayer)
+            local target = game.Players:FindFirstChild(selectedPlayer)
             if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
                 if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    LocalPlayer.Character.HumanoidRootPart.CFrame=target.Character.HumanoidRootPart.CFrame
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
                 end
             end
         end
     end
 })
 
-miscTab:Input({
-    Title = "Walkspeed",
-    Desc = "Sets your speed to the inputted value",
-    Value = "17",
-    InputIcon = "bird",
-    Type = "Input", 
-    Placeholder = "Enter amount...",
-    Callback = function(input) 
-        print("amount entered: " .. input)
+-- Misc Tab Inputs
+MiscTab:Input({
+    Title="WalkSpeed",
+    Desc="Sets your speed to the inputted value",
+    Value=tostring(WalkSpeedValue),
+    InputIcon="bird",
+    Type="Input",
+    Placeholder="Enter amount...",
+    Callback=function(input)
+        local val = tonumber(input)
+        if val then
+            WalkSpeedValue = val
+        end
     end
 })
 
-miscTab:Input({
-    Title = "JumpPower",
-    Desc = "Sets your JumpPower to the inputted value",
-    Value = "50",
-    InputIcon = "bird",
-    Type = "Input", 
-    Placeholder = "Enter amount...",
-    Callback = function(input) 
-        print("amount entered: " .. input)
+MiscTab:Input({
+    Title="JumpPower",
+    Desc="Sets your JumpPower to the inputted value",
+    Value=tostring(JumpPowerValue),
+    InputIcon="bird",
+    Type="Input",
+    Placeholder="Enter amount...",
+    Callback=function(input)
+        local val = tonumber(input)
+        if val then
+            JumpPowerValue = val
+        end
     end
 })
 
 MiscTab:Button({
     Title="Rejoin",
-    Callback=function() TeleportService:TeleportToPlaceInstance(game.PlaceId,game.JobId,LocalPlayer) end
+    Callback=function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end
 })
 
 MiscTab:Button({
@@ -131,12 +142,12 @@ MiscTab:Button({
         if suc then
             local data=HttpService:JSONDecode(res)
             for _,srv in pairs(data.data) do
-                if srv.playing<srv.maxPlayers and srv.id~=game.JobId then
+                if srv.playing < srv.maxPlayers and srv.id ~= game.JobId then
                     table.insert(servers,srv.id)
                 end
             end
             if #servers>0 then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId,servers[math.random(#servers)],LocalPlayer)
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(#servers)], LocalPlayer)
             end
         end
     end
@@ -147,6 +158,7 @@ MiscTab:Button({
     Callback=function() setclipboard("https://discord.gg/merquryhub") end
 })
 
+-- ESP Tab
 local ESPEnabled=false
 local ESPColor=Color3.fromRGB(0,0,255)
 
@@ -165,21 +177,22 @@ ESPTab:Colorpicker({
     Callback=function(c) ESPColor=c end
 })
 
-game:GetService("RunService").RenderStepped:Connect(function()
+-- ESP Logic
+RunService.RenderStepped:Connect(function()
     for _,plr in pairs(game.Players:GetPlayers()) do
-        if plr~=LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local box=plr.Character:FindFirstChild("ESPBox")
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            local box = plr.Character:FindFirstChild("ESPBox")
             if ESPEnabled then
                 if not box then
-                    box=Instance.new("BoxHandleAdornment")
-                    box.Name="ESPBox"
-                    box.Adornee=plr.Character.HumanoidRootPart
-                    box.Size=Vector3.new(2,5,1)
-                    box.Color=ESPColor
-                    box.AlwaysOnTop=true
-                    box.Parent=plr.Character
+                    box = Instance.new("BoxHandleAdornment")
+                    box.Name = "ESPBox"
+                    box.Adornee = plr.Character.HumanoidRootPart
+                    box.Size = Vector3.new(2,5,1)
+                    box.Color = ESPColor
+                    box.AlwaysOnTop = true
+                    box.Parent = plr.Character
                 else
-                    box.Color=ESPColor
+                    box.Color = ESPColor
                 end
             elseif box then
                 box:Destroy()
@@ -188,13 +201,13 @@ game:GetService("RunService").RenderStepped:Connect(function()
     end
 end)
 
-
+-- Speed Logic
 RunService.RenderStepped:Connect(function()
-	if SpeedEnabled and LocalPlayer.Character then
-		local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			humanoid.WalkSpeed = WalkSpeedValue
-			humanoid.JumpPower = JumpPowerValue
-		end
-	end
+    if SpeedEnabled and LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = WalkSpeedValue
+            humanoid.JumpPower = JumpPowerValue
+        end
+    end
 end)
