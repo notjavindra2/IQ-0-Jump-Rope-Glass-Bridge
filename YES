@@ -7,7 +7,7 @@ local ESPTab = Window:Tab({Title="ESP", Icon="eye"})
 local MiscTab = Window:Tab({Title="Misc", Icon="rbxassetid://4483345998"})
 
 local RunService = game:GetService("RunService")
-local LocalPlayer = game.Players.LocalPlayer
+loacal LocalPlayer = game.Players.LocalPlayer
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 
@@ -17,6 +17,18 @@ local selectedPlayer = "None"
 local dropdownRef
 local WalkSpeedValue, JumpPowerValue = 17, 50
 local SpeedEnabled = true
+
+Window:Tag({
+    Title = "v1.0.0",
+    Color = Color3.fromHex("#ffe600ff"),
+    Radius = 0, -- from 0 to 13
+})
+
+Window:Tag({
+    Title = "FORZA",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 0, -- from 0 to 13
+})
 
 -- Main Tab
 MainTab:Toggle({
