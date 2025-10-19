@@ -3,8 +3,8 @@ local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/rel
 local Window = WindUI:CreateWindow({Title="IQ 0 Jump Rope Glass Bridge", Size=UDim2.new(0,500,0,400), Theme="Dark"})
 
 local MainTab = Window:Tab({Title="Main", Icon="home"})
-local MiscTab = Window:Tab({Title="Misc", Icon="rbxassetid://4483345998"})
 local ESPTab = Window:Tab({Title="ESP", Icon="eye"})
+local MiscTab = Window:Tab({Title="Misc", Icon="rbxassetid://4483345998"})
 
 local RunService = game:GetService("RunService")
 local LocalPlayer = game.Players.LocalPlayer
@@ -155,12 +155,12 @@ MiscTab:Button({
 
 MiscTab:Button({
     Title="Copy Discord",
-    Callback=function() setclipboard("https://discord.gg/merquryhub") end
+    Callback=function() setclipboard("https://discord.gg/yM3aNST6tD") end
 })
 
--- ESP Tab
-local ESPEnabled=false
-local ESPColor=Color3.fromRGB(0,0,255)
+local ESPEnabled = false
+local ESPColor = Color3.fromRGB(0, 0, 255)
+local ESPBoxes = {} 
 
 ESPTab:Toggle({
     Title="ESP All Players",
@@ -168,40 +168,47 @@ ESPTab:Toggle({
     Icon="eye",
     Type="Checkbox",
     Default=false,
-    Callback=function(state) ESPEnabled=state end
+    Callback=function(state) ESPEnabled = state end
 })
 
 ESPTab:Colorpicker({
     Title="ESP Color",
     Default=ESPColor,
-    Callback=function(c) ESPColor=c end
+    Callback=function(c) ESPColor = c end
 })
 
--- ESP Logic
 RunService.RenderStepped:Connect(function()
-    for _,plr in pairs(game.Players:GetPlayers()) do
+    for _, plr in pairs(game.Players:GetPlayers()) do
         if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-            local box = plr.Character:FindFirstChild("ESPBox")
             if ESPEnabled then
-                if not box then
-                    box = Instance.new("BoxHandleAdornment")
+                if not ESPBoxes[plr] then
+                    local box = Instance.new("BoxHandleAdornment")
                     box.Name = "ESPBox"
                     box.Adornee = plr.Character.HumanoidRootPart
-                    box.Size = Vector3.new(2,5,1)
+                    box.Size = Vector3.new(2, 5, 1)
                     box.Color = ESPColor
                     box.AlwaysOnTop = true
-                    box.Parent = plr.Character
+                    box.ZIndex = 10
+                    box.Parent = workspace
+                    ESPBoxes[plr] = box
                 else
-                    box.Color = ESPColor
+                    ESPBoxes[plr].Color = ESPColor
                 end
-            elseif box then
-                box:Destroy()
+            elseif ESPBoxes[plr] then
+                ESPBoxes[plr]:Destroy()
+                ESPBoxes[plr] = nil
             end
         end
     end
 end)
 
--- Speed Logic
+game.Players.PlayerRemoving:Connect(function(plr)
+    if ESPBoxes[plr] then
+        ESPBoxes[plr]:Destroy()
+        ESPBoxes[plr] = nil
+    end
+end)
+
 RunService.RenderStepped:Connect(function()
     if SpeedEnabled and LocalPlayer.Character then
         local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
