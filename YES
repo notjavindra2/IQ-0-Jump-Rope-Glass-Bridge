@@ -6,9 +6,6 @@ local MainTab = Window:Tab({Title="Main",Icon="home"})
 local MiscTab = Window:Tab({Title="Misc",Icon="rbxassetid://4483345998"})
 local ESPTab = Window:Tab({Title="ESP",Icon="eye"})
 
-local MiscSection = MiscTab:Section({Title="Misc Features"})
-local ESPSection = ESPTab:Section({Title="ESP Features"})
-
 local winLoop = false
 local selectedPlayer = "None"
 local dropdownRef
@@ -96,7 +93,7 @@ MainTab:Button({
     end
 })
 
-MiscSection:Textbox({
+MiscTab:AddTextbox({
     Title="WalkSpeed",
     Text=tostring(WalkSpeedValue),
     Placeholder="Enter WalkSpeed",
@@ -112,7 +109,7 @@ MiscSection:Textbox({
     end
 })
 
-MiscSection:Textbox({
+MiscTab:AddTextbox({
     Title="JumpPower",
     Text=tostring(JumpPowerValue),
     Placeholder="Enter JumpPower",
@@ -128,12 +125,12 @@ MiscSection:Textbox({
     end
 })
 
-MiscSection:Button({
+MiscTab:Button({
     Title="Rejoin",
     Callback=function() TeleportService:TeleportToPlaceInstance(game.PlaceId,game.JobId,LocalPlayer) end
 })
 
-MiscSection:Button({
+MiscTab:Button({
     Title="Server Hop",
     Callback=function()
         local servers={}
@@ -154,7 +151,7 @@ MiscSection:Button({
     end
 })
 
-MiscSection:Button({
+MiscTab:Button({
     Title="Copy Discord",
     Callback=function() setclipboard("https://discord.gg/merquryhub") end
 })
@@ -162,7 +159,7 @@ MiscSection:Button({
 local ESPEnabled=false
 local ESPColor=Color3.fromRGB(0,0,255)
 
-ESPSection:Toggle({
+ESPTab:Toggle({
     Title="ESP All Players",
     Desc="Toggle ESP for everyone",
     Icon="eye",
@@ -171,7 +168,7 @@ ESPSection:Toggle({
     Callback=function(state) ESPEnabled=state end
 })
 
-ESPSection:Colorpicker({
+ESPTab:Colorpicker({
     Title="ESP Color",
     Default=ESPColor,
     Callback=function(c) ESPColor=c end
