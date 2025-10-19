@@ -9,8 +9,7 @@ local ESPTab = Window:Tab({Title="ESP",Icon="eye"})
 local winLoop = false
 local selectedPlayer = "None"
 local dropdownRef
-local WalkSpeedValue = 16
-local JumpPowerValue = 50
+local WalkSpeedValue, JumpPowerValue = 17, 50
 local SpeedEnabled = false
 local LocalPlayer = game.Players.LocalPlayer
 local TeleportService = game:GetService("TeleportService")
@@ -93,28 +92,27 @@ MainTab:Button({
     end
 })
 
-miscTab:AddTextbox({
-    Name = "WalkSpeed",
-    Default = "16",
-    TextDisappear = true,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            WalkSpeedValue = num
-            SpeedEnabled = true
-        end
+miscTab:Input({
+    Title = "Walkspeed",
+    Desc = "Sets your speed to the inputted value",
+    Value = "17",
+    InputIcon = "bird",
+    Type = "Input", 
+    Placeholder = "Enter amount...",
+    Callback = function(input) 
+        print("amount entered: " .. input)
     end
 })
-miscTab:AddTextbox({
-    Name = "JumpPower",
-    Default = "50",
-    TextDisappear = true,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            JumpPowerValue = num
-            SpeedEnabled = true
-        end
+
+miscTab:Input({
+    Title = "JumpPower",
+    Desc = "Sets your JumpPower to the inputted value",
+    Value = "50",
+    InputIcon = "bird",
+    Type = "Input", 
+    Placeholder = "Enter amount...",
+    Callback = function(input) 
+        print("amount entered: " .. input)
     end
 })
 
@@ -188,4 +186,15 @@ game:GetService("RunService").RenderStepped:Connect(function()
             end
         end
     end
+end)
+
+
+RunService.RenderStepped:Connect(function()
+	if SpeedEnabled and LocalPlayer.Character then
+		local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.WalkSpeed = WalkSpeedValue
+			humanoid.JumpPower = JumpPowerValue
+		end
+	end
 end)
