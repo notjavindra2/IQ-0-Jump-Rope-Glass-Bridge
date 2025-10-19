@@ -18,7 +18,7 @@ local HttpService = game:GetService("HttpService")
 
 MainTab:Toggle({
     Title="Auto Win Loop",
-    Desc="Continuously wins the jump rope game",
+    Desc="Continuously fire Win remote",
     Icon="check",
     Type="Checkbox",
     Default=false,
@@ -93,36 +93,16 @@ MainTab:Button({
     end
 })
 
-MiscTab:AddTextbox({
+MiscTab:Slider({
     Title="WalkSpeed",
-    Text=tostring(WalkSpeedValue),
-    Placeholder="Enter WalkSpeed",
-    Callback=function(value)
-        local num=tonumber(value)
-        if num then
-            WalkSpeedValue=num
-            SpeedEnabled=true
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.WalkSpeed=num
-            end
-        end
-    end
+    Default=16,Min=16,Max=200,
+    Callback=function(v) WalkSpeedValue=v; SpeedEnabled=true end
 })
 
-MiscTab:AddTextbox({
+MiscTab:Slider({
     Title="JumpPower",
-    Text=tostring(JumpPowerValue),
-    Placeholder="Enter JumpPower",
-    Callback=function(value)
-        local num=tonumber(value)
-        if num then
-            JumpPowerValue=num
-            SpeedEnabled=true
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.JumpPower=num
-            end
-        end
-    end
+    Default=50,Min=50,Max=200,
+    Callback=function(v) JumpPowerValue=v; SpeedEnabled=true end
 })
 
 MiscTab:Button({
