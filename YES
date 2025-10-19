@@ -21,7 +21,7 @@ local SpeedEnabled = true
 -- Main Tab
 MainTab:Toggle({
     Title="Auto Win Loop",
-    Desc="Continuously fire Win remote",
+    Desc="Continuously wins the IQ 0 Jump Rope Glass Bridge Game",
     Icon="check",
     Type="Checkbox",
     Default=false,
